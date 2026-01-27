@@ -1,82 +1,104 @@
-# NLP Urdu Poetry Generation
+# 📜 The Gilded Diwan (AI Urdu Poetry Generator)
 
-This project explores the generation of Urdu poetry using Deep Learning techniques. It implements and compares various neural network architectures, including Recurrent Neural Networks (RNN), Long Short-Term Memory (LSTM) networks, and Transformers, to generate coherent and stylistically appropriate Urdu verses.
+[![Python](https://img.shields.io/badge/Python-3.9%2B-FFE873?style=flat-square&logo=python&logoColor=black)](https://www.python.org/)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-FF6F00?style=flat-square&logo=tensorflow&logoColor=white)](https://www.tensorflow.org/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-App-FF4B4B?style=flat-square&logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
-## Project Overview
+> *"Where silicon meets the soul of Urdu literature."*
 
-The goal of this project is to build a text generation model capable of composing Urdu poetry. The project covers the entire machine learning pipeline, from data acquisition and preprocessing to model training, evaluation, and generation. It investigates the impact of different model architectures and optimizers on the quality of the generated text.
+---
 
-## Key Features
+## 🕯️ Project Overview
 
--   **Data Processing Pipeline:** Comprehensive cleaning, normalization, and tokenization of Urdu text.
--   **Multiple Architectures:** Implementation of Simple RNN, LSTM, and Transformer models from scratch using TensorFlow/Keras.
--   **Experimentation:** Systematic comparison of models with different optimizers (Adam, RMSprop, SGD).
--   **Poetry Generation:** Text generation capabilities with temperature control for diversity.
--   **Evaluation & Visualization:** Detailed analysis of training metrics (Accuracy, Loss, Perplexity) and visualization of results.
+**The Gilded Diwan** is a state-of-the-art Natural Language Processing (NLP) project that generates classical Urdu poetry (Ghazal style) using Deep Learning. 
 
-## Project Structure
+It explores the creative capabilities of three distinct neural architectures:
+-   **RNN** (Recurrent Neural Networks)
+-   **LSTM** (Long Short-Term Memory)
+-   **Transformer** (Self-Attention Mechanism)
 
-The project is organized as follows:
+Beyond mere text generation, this project features a **premium "Dark Rustic" Web Application** that acts as a digital poet, allowing users to compose verses and mint them into beautiful digital cards.
 
--   **`data/`**: Stores the dataset.
-    -   `processed/`: Contains the cleaned and tokenized data ready for training.
--   **`models/`**: Directory for saving trained model files (`.keras`) and the tokenizer (`tokenizer.pickle`).
--   **`notebooks/`**: Jupyter notebooks containing the code for each step:
-    -   `data_exploration.ipynb`: Exploratory Data Analysis (EDA) of the dataset.
-    -   `preprocessing.ipynb`: Data cleaning, tokenization, and sequence generation.
-    -   `models_experiments.ipynb`: Training and comparing baseline models (RNN, LSTM, Transformer).
-    -   `hyper_parameter_training.ipynb`: Hyperparameter tuning experiments.
-    -   `text_gen.ipynb`: Generating poetry using the trained models.
-    -   `show_generations.ipynb`: Displaying and analyzing generated samples.
-    -   `visualization.ipynb`: Visualizing training history and model comparisons.
--   **`results/`**: Stores output files.
-    -   `generated_text/`: CSV files containing generated poetry samples.
-    -   `training_logs/`: CSV logs of model training history.
-    -   `tables/`: Comparison tables of model performance.
--   **`requirements.txt`**: List of Python dependencies required for the project.
+---
 
-## Installation
+## ✨ Key Features
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <repository-url>
-    cd NLP_UrduPoetryGeneration
-    ```
+### 🧠 The AI Brain
+-   **Multi-Model Architecture**: Compare the creative outputs of RNNs, LSTMs, and Transformers.
+-   **Creativity Control**: Adjust the "Temperature" to shift between literal and abstract verses.
+-   **Roman-to-Urdu Engine**: Type naturally in Roman Urdu (e.g., *"Dil"*), and the engine automatically transliterates it to the correct script (`دل`) before generating poetry.
 
-2.  **Install dependencies:**
-    Ensure you have Python installed. It is recommended to use a virtual environment.
-    ```bash
-    pip install -r requirements.txt
-    ```
+### 🎨 The Frontend Experience
+-   **"Dark Rustic" Aesthetic**: A fully custom-styled user interface featuring deep charcoal textures, antique gold accents, and serif typography.
+-   **Instant Transliteration**: Visual feedback shows your Roman input transforming into Urdu script in real-time.
+-   **Keepsake Generator**: One-click generation of **Instagram-ready poetry cards** with vintage golden frames and elegant typography.
 
-## Usage
+---
 
-To run the project, execute the notebooks in the following order:
+## 🚀 Getting Started
 
-1.  **Data Preparation:**
-    Open and run `notebooks/preprocessing.ipynb`. This will clean the raw data, create the tokenizer, and save the processed data to `data/processed/`.
+Follow these instructions to set up the digital poet on your local machine.
 
-2.  **Model Training:**
-    Run `notebooks/models_experiments.ipynb` to train the baseline RNN, LSTM, and Transformer models. This notebook will save the trained models to the `models/` directory and training logs to `results/`.
+### Prerequisites
+-   Python 3.8 or higher
+-   Git
 
-3.  **Text Generation:**
-    Run `notebooks/text_gen.ipynb`. This notebook loads the trained models and generates poetry based on seed text. You can adjust parameters like `temperature` and `seed_text` within the notebook.
+### 1. Clone the Repository
+```bash
+git clone https://github.com/Shaharyar2442/NLP_UrduPoetryGeneration.git
+cd NLP_UrduPoetryGeneration
+```
 
-4.  **Analysis & Visualization:**
-    -   Use `notebooks/show_generations.ipynb` to view the generated poetry in a structured format.
-    -   Use `notebooks/visualization.ipynb` to see graphs of loss, accuracy, and perplexity comparisons.
+### 2. Install Dependencies
+We have a dedicated requirements file for the web application:
+```bash
+pip install -r app/requirements.txt
+```
 
-## Dependencies
+### 3. Launch the Application
+Ignite the engine and open the web interface:
+```bash
+streamlit run app/main.py
+```
+*The application should automatically open in your default browser at `http://localhost:8501`.*
 
--   numpy
--   pandas
--   matplotlib
--   seaborn
--   scikit-learn
--   tensorflow
--   datasets
--   urpa
+---
 
-## Results
+## 🛠️ Project Structure
 
-The project compares the performance of different models based on Perplexity, Accuracy, and Loss. Detailed results and generated samples can be found in the `results/` directory.
+```bash
+NLP_UrduPoetryGeneration/
+├── 📂 app/                  # The "Dark Rustic" Web Application
+│   ├── main.py              # Application entry point (Streamlit)
+│   ├── utils.py             # core logic (Model loading, Transliteration)
+│   ├── card_generator.py    # Image generation engine (Pillow)
+│   └── requirements.txt     # App-specific dependencies
+├── 📂 data/                 # Dataset and processed files
+├── 📂 models/               # Pre-trained Keras models (.h5/.keras)
+├── 📂 notebooks/            # Jupyter notebooks for training & research
+└── 📂 results/              # Generated text samples and CSVs
+```
+
+---
+
+## 📸 Snapshot
+
+*(You can add a screenshot of your beautiful UI here)*
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! If you have ideas for better model architectures or new UI themes:
+1.  Fork the repository.
+2.  Create your feature branch (`git checkout -b feature/AmazingFeature`).
+3.  Commit your changes.
+4.  Push to the branch.
+5.  Open a Pull Request.
+
+---
+
+## 📜 License
+
+Distributed under the MIT License. See `LICENSE` for more information.

@@ -83,8 +83,7 @@ NLP_UrduPoetryGeneration/
 ---
 
 ## 📸 Snapshot
-
-*(You can add a screenshot of your beautiful UI here)*
+![Snapshot](Screenshot%202026-01-27%20172546.png)
 
 ---
 

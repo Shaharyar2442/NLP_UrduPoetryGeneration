@@ -74,7 +74,6 @@ class TokenAndPositionEmbedding(Layer):
 def load_tokenizer(path='../models/tokenizer.pickle'):
     """Loads the tokenizer. Cached to run once."""
     if not os.path.exists(path):
-         # Try local path if running from root or app folder
          if os.path.exists("models/tokenizer.pickle"):
              path = "models/tokenizer.pickle"
          else:
@@ -92,7 +91,6 @@ def load_poetry_model(model_name, base_path='../models'):
     Mapping:
     - 'RMSprop' variants are selected as the 'Best' options.
     """
-    # Adjust path if running from root vs app folder
     if not os.path.exists(base_path):
         if os.path.exists("models"):
             base_path = "models"
@@ -125,13 +123,44 @@ def load_poetry_model(model_name, base_path='../models'):
         st.error(f"Failed to load model {model_name}: {e}")
         return None
 
+# --- Helpers ---
+
+def roman_to_urdu_map(text):
+    """
+    Simple mapping for common poetic words.
+    Expand this dictionary as needed.
+    """
+    mapping = {
+        "muhabbat": "محبت",
+        "mohabbat": "محبت",
+        "dil": "دل",
+        "shaam": "شام",
+        "sham": "شام",
+        "yaad": "یاد",
+        "yad": "یاد",
+        "khushi": "خوشی",
+        "zindagi": "زندگی",
+        "duniya": "دنیا",
+        "ishq": "عشق",
+        "raat": "رات",
+        "subah": "صبح",
+        "dard": "درد",
+        "bewafa": "بے وفا",
+        "sanam": "صنم",
+        "khuda": "خدا",
+        "jaan": "جان",
+        "jahaan": "جہاں"
+    }
+    
+    lower_text = text.lower().strip()
+    return mapping.get(lower_text, text) # Return original if not found
+
 # --- Generation Logic ---
 
 def generate_poetry(model, tokenizer, seed_text, next_words, temperature, max_sequence_len):
     """Generates poetry text given a model and seed."""
     output_text = seed_text
     
-    # Safety break to prevent infinite loops if something goes wrong
     for _ in range(next_words):
         token_list = tokenizer.texts_to_sequences([output_text])[0]
         token_list = pad_sequences([token_list], maxlen=max_sequence_len-1, padding='pre')
@@ -139,14 +168,12 @@ def generate_poetry(model, tokenizer, seed_text, next_words, temperature, max_se
         try:
             predictions = model.predict(token_list, verbose=0)[0]
         except:
-             break # Handle shape mismatches gracefully for user
+             break 
              
-        # Temperature sampling
         predictions = np.log(predictions + 1e-7) / temperature
         exp_preds = np.exp(predictions)
         predictions = exp_preds / np.sum(exp_preds)
         
-        # Stochastic selection
         predicted_id = np.random.choice(len(predictions), p=predictions)
         
         predicted_word = ""

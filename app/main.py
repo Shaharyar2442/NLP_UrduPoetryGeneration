@@ -1,177 +1,126 @@
 import streamlit as st
 import os
 import numpy as np
-import time
-from utils import load_tokenizer, load_poetry_model, generate_poetry
+from utils import load_tokenizer, load_poetry_model, generate_poetry, roman_to_urdu_map
 from card_generator import create_poetry_card
 from io import BytesIO
-from googletrans import Translator
-from streamlit_lottie import st_lottie
-import requests
-
-# --- Helpers ---
-def load_lottieurl(url: str):
-    r = requests.get(url)
-    if r.status_code != 200:
-        return None
-    return r.json()
-
-def transliterate_to_urdu(text):
-    """
-    Attempts to transliterate/translate Roman Urdu or English to Urdu Script.
-    """
-    if not text:
-        return ""
-    
-    # Check if text contains mostly ASCII (English/Roman)
-    is_ascii = all(ord(char) < 128 for char in text.replace(" ", ""))
-    
-    if is_ascii:
-        try:
-            translator = Translator()
-            # "ur" destination usually handles Roman -> Urdu transliteration well for common words
-            result = translator.translate(text, dest='ur')
-            return result.text
-        except Exception as e:
-            # Fallback if offline or error
-            return text
-    return text
 
 # --- Page Config ---
 st.set_page_config(
     page_title="Urdu Poetry Generator",
-    page_icon="✒️",
+    page_icon="📜",
     layout="centered",
     initial_sidebar_state="expanded"
 )
 
-# --- Custom CSS (Enhanced Midnight Premium Theme) ---
+# --- Custom CSS (Dark Rustic/Vintage Theme) ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&family=Cinzel:wght@400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&family=Cinzel:wght@400;700&family=Playfair+Display:wght@400;700&display=swap');
     
-    /* Main Background with Animated Gradient */
+    /* Global Background */
     .stApp {
-        background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #141E30);
-        background-size: 400% 400%;
-        animation: gradient 15s ease infinite;
-        color: #e0e0e0;
+        background-color: #121212;
+        background-image: linear-gradient(rgba(18, 18, 18, 0.85), rgba(18, 18, 18, 0.95)), 
+                          url("https://www.transparenttextures.com/patterns/black-linen.png");
+        background-size: cover;
+        background-attachment: fixed;
+        color: #E0D6C2; /* Cream */
     }
+
+    /* Hide Streamlit Elements */
+    header {visibility: hidden;}
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden !important;}
+    .stDeployButton {display:none;}
     
-    @keyframes gradient {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    
-    /* Typography */
-    h1, h2, h3 {
+    /* Headlines */
+    h1, h2, h3, h4, .big-font {
         font-family: 'Cinzel', serif;
-        color: #FFD700; /* Gold */
+        color: #C5A059; /* Antique Gold */
         text-align: center;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
-        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
     }
     
-    /* Input Area - Fix Visibility */
-    .stTextInput label {
-        color: #d4af37 !important;
-        font-size: 1.2rem;
+    p, label {
+        font-family: 'Playfair Display', serif;
+        color: #E0D6C2;
     }
+
+    /* Input Field Styling */
     .stTextInput > div > div > input {
-        background-color: rgba(255, 255, 255, 0.1) !important;
-        color: #ffffff !important;
-        border: 2px solid #d4af37 !important;
+        background-color: #2E2E2E !important;
+        color: #E0D6C2 !important; /* Cream Text */
+        border: 2px solid #C5A059 !important;
+        border-radius: 5px;
         font-family: 'Noto Nastaliq Urdu', serif;
         text-align: right;
-        font-size: 24px !important;
+        font-size: 20px;
         padding: 10px;
-        border-radius: 10px;
-        transition: all 0.3s ease;
     }
-    .stTextInput > div > div > input:focus {
-        background-color: rgba(255, 255, 255, 0.2) !important;
-        box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
-        outline: none;
+
+    /* Sidebar Styling */
+    section[data-testid="stSidebar"] {
+        background-color: #0d0d0d;
+        border-right: 1px solid #333;
     }
     
+    .sidebar-text {
+        color: #E0D6C2;
+        font-family: 'Playfair Display', serif;
+    }
+
     /* Buttons */
     .stButton > button {
-        background: linear-gradient(90deg, #d4af37, #f7ef8a, #d4af37);
-        background-size: 200% auto;
-        color: #000;
-        border: none;
-        border-radius: 50px;
-        padding: 15px 40px;
-        font-weight: bold;
+        background: linear-gradient(#121212, #1E1E1E);
+        color: #C5A059;
+        border: 1px solid #C5A059;
+        border-radius: 2px;
+        padding: 10px 30px;
         font-family: 'Cinzel', serif;
-        letter-spacing: 1px;
-        transition: 0.5s;
+        font-weight: bold;
+        transition: 0.3s;
         width: 100%;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
     .stButton > button:hover {
-        background-position: right center;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6);
+        background: #C5A059;
+        color: #121212;
+        box-shadow: 0 0 15px rgba(197, 160, 89, 0.3);
     }
-    
-    /* Output Card with Fade In */
-    .poetry-card-container {
-        animation: fadeIn 2s ease-in-out;
-    }
-    
-    @keyframes fadeIn {
-        0% { opacity: 0; transform: translateY(20px); }
-        100% { opacity: 1; transform: translateY(0); }
-    }
-    
-    .poetry-card {
-        background: rgba(16, 16, 16, 0.7);
-        border: 2px solid #d4af37;
-        border-radius: 20px;
-        padding: 40px;
-        text-align: center;
-        margin-top: 30px;
-        backdrop-filter: blur(15px);
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+
+    /* Vintage Card Container */
+    .poetry-container {
         position: relative;
-        overflow: hidden;
+        background: rgba(30, 30, 30, 0.6);
+        border: 1px solid rgba(197, 160, 89, 0.3);
+        padding: 40px;
+        margin-top: 30px;
+        border-radius: 4px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+        text-align: center;
     }
-    
-    /* Decorative Corner Elements (CSS Pseudo-elements) */
-    .poetry-card::before {
-        content: "Draft";
-        position: absolute;
-        top: -10px;
-        left: -10px;
-        width: 50px;
-        height: 50px;
-        border-top: 3px solid #d4af37;
-        border-left: 3px solid #d4af37;
-        opacity: 0; /* Hidden for now, just an example idea */
-    }
-    
+
     .urdu-text {
         font-family: 'Noto Nastaliq Urdu', serif;
-        font-size: 38px;
+        font-size: 36px;
         color: #fff;
         line-height: 2.2;
         direction: rtl;
-        text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        text-shadow: 0px 0px 8px rgba(255, 255, 255, 0.2);
     }
     
-    .translation-text {
-         font-family: 'Cinzel', serif;
-         font-size: 14px;
-         color: #aaa;
-         margin-top: 10px;
-    }
-    
-    /* Sidebar Styling */
-    [data-testid="stSidebar"] {
-        background-color: #0c0e14;
-        border-right: 1px solid #333;
+    /* Transliteration Text */
+    .transliteration-box {
+        text_align: center;
+        color: #C5A059; 
+        font-family: 'Noto Nastaliq Urdu', serif; 
+        font-size: 1.2rem;
+        margin-top: -10px;
+        margin-bottom: 20px;
     }
     
 </style>
@@ -179,127 +128,107 @@ st.markdown("""
 
 # --- Sidebar ---
 with st.sidebar:
-    # Lottie Animation for sidebar
-    lottie_poetry = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_V9t630.json") # Feather Pen
-    if lottie_poetry:
-        st_lottie(lottie_poetry, height=150, key="sidebar_anim")
-    else:
-        st.image("https://img.icons8.com/clouds/200/poetry.png", width=100)
-        
-    st.markdown("### ⚙️ Settings")
+    st.markdown("### ⚙️ Configuration")
+    st.markdown("---")
     
     model_choice = st.selectbox(
         "Choose AI Model",
-        ("RNN (Creative)", "LSTM (Balanced)", "Transformer (Advanced)"),
-        index=2
+        ("RNN", "LSTM", "Transformer"),
+        index=2,
+        help="Select the deep learning architecture."
     )
     
-    # Map friendly names to internal keys
     model_map = {
-        "RNN (Creative)": "RNN",
-        "LSTM (Balanced)": "LSTM",
-        "Transformer (Advanced)": "Transformer"
+        "RNN": "RNN",
+        "LSTM": "LSTM",
+        "Transformer": "Transformer"
     }
     selected_model_key = model_map[model_choice]
 
-    temperature = st.slider("Creativity (Temperature)", 0.5, 1.5, 1.0, 0.1)
-    length = st.slider("Verse Length (Words)", 5, 30, 15)
+    temperature = st.slider("Creativity (Temperature)", 0.5, 1.5, 1.0, 0.1, help="Higher values make the poetry more abstract.")
+    length = st.slider("Verse Length", 5, 30, 15)
     
-    st.markdown("---")
-    st.info("💡 **Tip:** Higher temperature makes the poetry more unique but unpredictable.")
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.info("Tip: Start with standard Roman Urdu (e.g., 'Dil'). The ink will transform it.")
 
 # --- Main Content ---
-col1, col2 = st.columns([1, 6])
-with col1:
-    lottie_book = load_lottieurl("https://assets8.lottiefiles.com/packages/lf20_4kji20y9.json") # Magic Book
-    if lottie_book:
-        st_lottie(lottie_book, height=80, key="header_anim")
-with col2:
-    st.title("✨ Shair-o-Shayari AI ✨")
-st.markdown("<h3 style='text-align: center; color: #aaa; margin-top: -20px;'><i>Artificial Intelligence for Urdu Poetry</i></h3>", unsafe_allow_html=True)
+st.markdown("<h1 style='font-size: 3.5rem;'>The Gilded Diwan</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-style: italic; opacity: 0.8;'>Soulless AI Generated Poetry</p>", unsafe_allow_html=True)
+st.markdown("---")
 
 # 1. Load Resources
+MAX_SEQUENCE_LEN = 14 # Default fallback
 with st.spinner("Summoning the Muse..."):
     tokenizer = load_tokenizer()
-    # Attempt to detect input shape from model
-    MAX_SEQUENCE_LEN = 14 # Default fallback
     model = load_poetry_model(selected_model_key)
-    
-    if model:
-        try:
-             if hasattr(model, 'input_shape'):
-                 # Check if input_shape is available and valid
-                 shape = model.input_shape
-                 if shape and len(shape) > 1:
-                    MAX_SEQUENCE_LEN = shape[1] + 1
-        except:
-            pass
+
+if model:
+    try:
+        if hasattr(model, 'input_shape'):
+             MAX_SEQUENCE_LEN = model.input_shape[1] + 1
+    except:
+        pass
 
 # 2. Input
-st.markdown("<br>", unsafe_allow_html=True)
-concept_col1, concept_col2 = st.columns([4, 1])
-
-with concept_col1:
-    user_input = st.text_input("Enter the first word (English/Urdu):", "Mohabbat")
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    # Text Input (Default: English/Roman)
+    raw_input = st.text_input("First Word:", "Muhabbat", help="Enter a word to begin the Ghazal (Roman or Urdu)")
     
     # Transliteration Logic
-    seed_text = user_input
-    if user_input:
-        converted_text = transliterate_to_urdu(user_input)
-        if converted_text != user_input:
-           st.caption(f"✨ Transliterated to: **{converted_text}**")
-           seed_text = converted_text
+    urdu_input = roman_to_urdu_map(raw_input)
+    
+    # Display Transliteration Feedback
+    if raw_input.strip():
+        st.markdown(f"<div style='text-align: center; color: #C5A059; font-family: Noto Nastaliq Urdu; margin-top: 5px;'>Transliterated to: {urdu_input}</div>", unsafe_allow_html=True)
 
 # 3. Generate
-if st.button("✨ Compose Verse ✨"):
+if st.button("Ink the Page"):
     if not model or not tokenizer:
-        st.error("Model or Tokenizer failed to load. Please check file paths.")
-    elif not seed_text.strip():
-        st.warning("Please enter a starting word.")
+        st.error("The quill is broken (Model failed to load).")
+    elif not urdu_input.strip():
+        st.warning("Even a blank page needs a thought to begin.")
     else:
-        with st.spinner("Weaving words of wisdom..."):
+        with st.spinner("Composing..."):
             try:
+                # Use the Transliterated Urdu Input
                 generated_verse = generate_poetry(
                     model, 
                     tokenizer, 
-                    seed_text, 
+                    urdu_input, 
                     length, 
                     temperature, 
                     MAX_SEQUENCE_LEN
                 )
                 
-                # Display Result with Animation Container
+                # Display Result in Vintage Container
                 st.markdown(f"""
-                <div class="poetry-card-container">
-                    <div class="poetry-card">
-                        <div class="urdu-text">{generated_verse}</div>
-                        <div class="translation-text">generated by {selected_model_key} model</div>
-                    </div>
+                <div class="poetry-container">
+                    <div class="urdu-text">{generated_verse}</div>
                 </div>
                 """, unsafe_allow_html=True)
                 
                 # Generate Image Card
                 card_img = create_poetry_card(generated_verse, attribution="AI Poet")
                 
-                # Save to buffer for download
+                # Save to buffer
                 buf = BytesIO()
                 card_img.save(buf, format="PNG")
                 byte_im = buf.getvalue()
 
                 st.markdown("<br>", unsafe_allow_html=True)
-                d_col1, d_col2, d_col3 = st.columns([1,2,1])
-                with d_col2:
+                c1, c2, c3 = st.columns([1,1,1])
+                with c2:
                     st.download_button(
-                        label="📷 Download Poetry Card",
+                        label="Download Keepsake 📥",
                         data=byte_im,
-                        file_name="urdu_poetry_card.png",
+                        file_name="urdu_verse_card.png",
                         mime="image/png",
                     )
                     
             except Exception as e:
-                st.error(f"An error occurred during generation: {e}")
-                st.info("Tip: Try a different model or shorter length.")
+                st.error(f"Ink spilled: {e}")
 
 # Footer
 st.markdown("<br><br><br>", unsafe_allow_html=True)
-st.markdown("<div style='text-align: center; color: #555; font-size: 0.8em;'>Crafted with ❤️ & Deep Learning</div>", unsafe_allow_html=True)
+st.markdown("<div style='text-align: center; font-family: Cinzel; color: #555; font-size: 0.8rem;'>Neural Networks • Urdu Literature • Generative Art</div>", unsafe_allow_html=True)

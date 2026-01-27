@@ -1,9 +1,8 @@
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
 import os
-import random
 
-# Try to import Urdu support libraries, fail gracefully if not found
+# Try importing Urdu support
 try:
     import arabic_reshaper
     from bidi.algorithm import get_display
@@ -13,39 +12,44 @@ except ImportError:
 
 def create_poetry_card(text, attribution="AI Poet"):
     """
-    Creates a social-media ready image card with the given poetry text.
+    Creates a vintage-style poetry card with a double border and dark textured background.
     """
     # 1. Canvas Setup
-    width, height = 1080, 1080  # Square for Instagram/LinkedIn
+    width, height = 1080, 1080
     
-    # Background: Dark gradient or solid dark color for premium look
-    # We'll create a vertical gradient from deep blue/black to midnight purple
-    image = Image.new("RGB", (width, height), "#0f0c29")
+    # Background: Solid Deep Charcoal (Almost Black)
+    bg_color = (15, 15, 18) # #0F0F12
+    image = Image.new("RGB", (width, height), bg_color)
     draw = ImageDraw.Draw(image)
     
-    # Simple Gradient Effect
-    for y in range(height):
-        r = int(15 + (y / height) * 45)   # 15 -> 60
-        g = int(12 + (y / height) * 10)   # 12 -> 22
-        b = int(41 + (y / height) * 60)   # 41 -> 101
-        draw.line([(0, y), (width, y)], fill=(r, g, b))
+    # Optional: Add subtle noise/texture simulation (Simple vignette via drawing)
+    # We'll draw a radial gradient overlay (not fully supported natively in simple PIL drawing without heavy pixel ops, 
+    # so we'll stick to a solid elegant background with frame).
+    
+    # 2. Frames (Double Border)
+    # Colors
+    gold_color = (197, 160, 89) # #C5A059
+    dark_frame_color = (40, 40, 40)
+    
+    # Outer Border (Gold)
+    margin = 40
+    draw.rectangle([margin, margin, width-margin, height-margin], outline=gold_color, width=3)
+    
+    # Inner Border (Thin Gold)
+    inner_margin = 60
+    draw.rectangle([inner_margin, inner_margin, width-inner_margin, height-inner_margin], outline=gold_color, width=1)
+    
+    # Corner Accents (Simple Lines)
+    corner_len = 50
+    # Top Left
+    draw.line([(margin, margin+corner_len), (margin+corner_len, margin+corner_len)], fill=gold_color, width=1)
+    # (Simplified: Just the double border looks classy enough)
 
-    # 2. Add Decorative Border (Gold)
-    border_color = (212, 175, 55) # Gold
-    border_width = 15
-    draw.rectangle([border_width, border_width, width-border_width, height-border_width], outline=border_color, width=3)
-    
-    # 3. Add Text
-    # Load Font
-    font_path = "arial.ttf" # Fallback
-    # Attempt to use a Nastaliq font if available in assets, else system default
-    # For now we will use a default size
-    font_size = 60
-    
+    # 3. Typography
+    font_size = 72
     try:
-        # User should ideally provide 'NotoNastaliqUrdu-Regular.ttf' in app folder
-        # We will check if it exists in 'app/assets' or root
-        potential_fonts = ["app/assets/NotoNastaliqUrdu-Regular.ttf", "NotoNastaliqUrdu-Regular.ttf", "arial.ttf", "seguiemj.ttf"]
+        # Check standard paths
+        potential_fonts = ["app/assets/NotoNastaliqUrdu-Regular.ttf", "NotoNastaliqUrdu-Regular.ttf", "arial.ttf"]
         found_font = False
         for p in potential_fonts:
             if os.path.exists(p):
@@ -62,40 +66,42 @@ def create_poetry_card(text, attribution="AI Poet"):
         reshaped_text = arabic_reshaper.reshape(text)
         bidi_text = get_display(reshaped_text)
     else:
-        bidi_text = text # Will look broken for joined scripts but it's a fallback
+        bidi_text = text
 
-    # Wrap Text (Manual wrapping for Urdu is tricky, we'll try a simple char count split)
-    # Note: textwrap module works on characters, Urdu words vary in width. 
-    # For a simple card, we'll try to split by space if the string is too long.
+    # Wrap Text: Estimate chars per line
+    # For 1080px width and 72px font, approx 20-30 chars?
+    wrapper = textwrap.TextWrapper(width=30)
+    lines = wrapper.wrap(bidi_text)
     
-    lines = textwrap.wrap(bidi_text, width=40) # 40 chars width approx
-    
-    # Draw Lines Centered
-    total_text_height = len(lines) * (font_size + 20)
+    # Calculate Text Block Height
+    line_height_pixels = font_size + 40
+    total_text_height = len(lines) * line_height_pixels
     current_y = (height - total_text_height) // 2
     
     for line in lines:
-        # Get text bounding box using getbbox()
-        bbox = draw.textbbox((0, 0), line, font=font)
+        try:
+            bbox = draw.textbbox((0, 0), line, font=font)
+        except:
+             # Fallback for older PIL versions
+             w, h = draw.textsize(line, font=font)
+             bbox = (0, 0, w, h)
+             
         text_w = bbox[2] - bbox[0]
-        text_h = bbox[3] - bbox[1]
-        
         x = (width - text_w) // 2
         
-        # Draw Shadow
-        draw.text((x+2, current_y+2), line, font=font, fill="black")
-        # Draw Text
-        draw.text((x, current_y), line, font=font, fill="white")
+        # Subtle Drop Shadow
+        draw.text((x+4, current_y+4), line, font=font, fill=(5, 5, 5))
+        # Main Text (Cream/White)
+        draw.text((x, current_y), line, font=font, fill=(240, 240, 240))
         
-        current_y += font_size + 20
+        current_y += line_height_pixels
 
-    # 4. Add Attribution
-    attr_font_size = 30
+    # 4. Attribution (Bottom Center, Serif Font if possible)
     try:
-        attr_font = ImageFont.truetype("arial.ttf", attr_font_size)
+        attr_font = ImageFont.truetype("times.ttf", 40)
     except:
          attr_font = ImageFont.load_default()
          
-    draw.text((width//2 - 50, height - 100), f"- {attribution}", font=attr_font, fill=border_color)
+    draw.text((width//2 - 50, height - 120), f"~ {attribution}", font=attr_font, fill=gold_color)
 
     return image

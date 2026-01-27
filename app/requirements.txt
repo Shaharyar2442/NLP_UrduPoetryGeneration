@@ -1,0 +1,9 @@
+streamlit
+tensorflow
+numpy
+pandas
+pillow
+arabic-reshaper
+python-bidi
+googletrans==4.0.0-rc1
+streamlit-lottie

@@ -1,0 +1,10 @@
+Model,Optimizer,Accuracy,Loss,Perplexity,Training Time (s),Layers
+RNN,Adam,0.0663,6.8536,947.32,Cached,2
+RNN,RMSprop,0.076,6.5013,666.04,Cached,2
+RNN,SGD,0.0382,6.849,942.97,Cached,2
+LSTM,Adam,0.0707,6.8695,962.45,Cached,2
+LSTM,RMSprop,0.0749,6.5635,708.72,Cached,2
+LSTM,SGD,0.0382,6.8538,947.45,Cached,2
+Transformer,Adam,0.048,6.9828,1077.93,1010.9,2
+Transformer,RMSprop,0.072,6.6985,811.21,2893.43,2
+Transformer,SGD,0.0382,6.8492,943.13,3214.28,2

@@ -80,6 +80,30 @@ NLP_UrduPoetryGeneration/
 └── 📂 results/              # Generated text samples and CSVs
 ```
 
+
+---
+
+## 🔬 Research & Experimentation
+
+This project served as a rigorous study into the comparative performance of sequential models (RNN, LSTM) versus attention-based models (transformers) for low-resource languages like Urdu.
+
+### 📊 Key Findings
+
+| Model | Optimizer | Perplexity (Lower is Better) | Accuracy | Insight |
+| :--- | :--- | :--- | :--- | :--- |
+| **RNN** | **RMSprop** | **666.04** | **7.60%** | The most consistent performer for this dataset size. |
+| **LSTM** | RMSprop | 708.72 | 7.49% | Comparable to RNN but slightly harder to converge. |
+| **Transformer**| RMSprop | 811.21 | 7.20% | Requires more data; struggled with high variance compared to RNNs. |
+
+### 🧠 Critical Insights
+1.  **Optimizer Dominance**: `RMSprop` consistently outperformed `Adam` and `SGD` across all architectures. For example, the Transformer's perplexity dropped from **1077 (Adam)** to **811 (RMSprop)** just by switching optimizers.
+2.  **Architecture Complexity**:
+    *   **Simpler is Better**: Our hyperparameter experiments revealed that a **1-Block Transformer** (Perplexity 658) significantly outperformed a 3-Block Transformer (Perplexity 1047).
+    *   **Depth vs. Breadth**: Increasing RNN layers from 1 to 3 actually *increased* perplexity (614 -> 680), suggesting the dataset is best modeled by shallower, wider networks.
+3.  **The "Transformer Gap"**: While Transformers are SOTA for large corpora, on this specialized Urdu poetry dataset, **RNNs** proved more data-efficient and stable.
+
+> *For a full deep-dive into the loss curves, attention heatmaps, and hyperparameter logs, please see the `report/` and `results/` directories.*
+
 ---
 
 ## 📸 Snapshot
